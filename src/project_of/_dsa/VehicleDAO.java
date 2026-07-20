@@ -249,7 +249,10 @@ public class VehicleDAO {
                 );
                 vehicle.setSlotNumber(rs.getInt("slot_number"));
                 vehicle.setEntryTime(parseDateTimeValue(rs.getObject("entry_time")));
+                vehicle.setExitTime(parseDateTimeValue(rs.getObject("exit_time")));
+                vehicle.setParkingFee(rs.getDouble("parking_fee"));
                 vehicle.setParked(rs.getInt("parked") == 1);
+                vehicle.setPriority(rs.getString("priority"));
                 list.add(vehicle);
             }
             rs.close();
@@ -276,7 +279,11 @@ public class VehicleDAO {
                         rs.getString("vehicle_type")
                 );
                 vehicle.setSlotNumber(rs.getInt("slot_number"));
+                vehicle.setEntryTime(parseDateTimeValue(rs.getObject("entry_time")));
+                vehicle.setExitTime(parseDateTimeValue(rs.getObject("exit_time")));
+                vehicle.setParkingFee(rs.getDouble("parking_fee"));
                 vehicle.setParked(rs.getInt("parked") == 1);
+                vehicle.setPriority(rs.getString("priority"));
                 list.add(vehicle);
             }
             rs.close();

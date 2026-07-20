@@ -143,10 +143,7 @@ public class SearchVehicleFrame extends JFrame {
 
         switch (searchType) {
             case "Vehicle Number":
-                Vehicle byNo = trie.search(query) ? DataStructureManager.hashTable.searchVehicle(query) : null;
-                if (byNo == null) {
-                    byNo = VehicleDAO.searchVehicle(query);
-                }
+                Vehicle byNo = VehicleDAO.searchVehicle(query);
                 if (byNo != null) {
                     results.add(byNo);
                 }
