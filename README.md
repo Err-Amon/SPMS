@@ -11,6 +11,12 @@ Java Swing + SQLite desktop app for managing vehicle parking with multiple built
 - Vehicle history and search
 - DSA-backed modules: AVL tree, BST, linked lists, hash table, trie, stack, queue, min heap, sorting, graph, greedy slot allocator
 
+## Pictures 
+![alt text](image.png) , ![alt text](image-1.png)
+![alt text](image-2.png) , ![alt text](image-3.png)
+
+
+
 ## Tech
 
 - Java Swing UI
