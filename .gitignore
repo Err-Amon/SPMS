@@ -1,0 +1,15 @@
+out/
+*.class
+*.jar
+parking.db
+*.log
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+bin/
+build/
+.DS_Store
+Thumbs.db
