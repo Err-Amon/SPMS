@@ -195,8 +195,8 @@ public class Theme {
         private final int height;
 
         static {
-            carImage = loadIcon("/project_of/_dsa/icons/car.png");
-            motorcycleImage = loadIcon("/project_of/_dsa/icons/motorcycle.png");
+            carImage = loadIconWithTransparency("/project_of/_dsa/icons/car.png");
+            motorcycleImage = loadIconWithTransparency("/project_of/_dsa/icons/motorcycle.png");
         }
 
         private static Image loadIcon(String path) {
@@ -211,6 +211,92 @@ public class Theme {
             } catch (Exception e) {
             }
             return null;
+        }
+
+        private static Image loadIconWithTransparency(String path) {
+            try {
+                java.net.URL url = Theme.class.getResource(path);
+                if (url != null) {
+                    Image img = new ImageIcon(url).getImage();
+                    int w = img.getWidth(null);
+                    int h = img.getHeight(null);
+                    if (w > 0 && h > 0) {
+                        java.awt.image.BufferedImage buffered = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        java.awt.Graphics2D g2 = buffered.createGraphics();
+                        g2.drawImage(img, 0, 0, null);
+                        g2.dispose();
+
+                        java.awt.Color bgColor = detectBackgroundColor(buffered, w, h);
+                        int bgRgb = bgColor.getRGB();
+                        int tolerance = 30;
+
+                        for (int y = 0; y < h; y++) {
+                            for (int x = 0; x < w; x++) {
+                                int rgb = buffered.getRGB(x, y);
+                                if (isSimilarColor(rgb, bgRgb, tolerance)) {
+                                    buffered.setRGB(x, y, 0x00000000);
+                                }
+                            }
+                        }
+                        return buffered;
+                    }
+                }
+            } catch (Exception e) {
+            }
+            return null;
+        }
+
+        private static java.awt.Color detectBackgroundColor(java.awt.image.BufferedImage img, int w, int h) {
+            int step = Math.max(1, Math.min(w, h) / 20);
+            java.util.Map<Integer, int[]> colorBuckets = new java.util.HashMap<>();
+
+            int[][] corners = {{0, 0}, {w - 1, 0}, {0, h - 1}, {w - 1, h - 1}};
+            for (int[] c : corners) {
+                int rgb = img.getRGB(c[0], c[1]) & 0x00FFFFFF;
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+                int key = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
+                colorBuckets.computeIfAbsent(key, k -> new int[2])[0]++;
+            }
+
+            for (int y = 0; y < h; y += step) {
+                for (int x = 0; x < w; x += step) {
+                    int rgb = img.getRGB(x, y) & 0x00FFFFFF;
+                    int r = (rgb >> 16) & 0xFF;
+                    int g = (rgb >> 8) & 0xFF;
+                    int b = rgb & 0xFF;
+                    int key = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
+                    colorBuckets.computeIfAbsent(key, k -> new int[2])[0]++;
+                }
+            }
+
+            int maxKey = -1;
+            int maxCount = -1;
+            for (java.util.Map.Entry<Integer, int[]> e : colorBuckets.entrySet()) {
+                if (e.getValue()[0] > maxCount) {
+                    maxCount = e.getValue()[0];
+                    maxKey = e.getKey();
+                }
+            }
+
+            int r = ((maxKey >> 16) & 0xFF) * 8;
+            int g = ((maxKey >> 8) & 0xFF) * 8;
+            int b = (maxKey & 0xFF) * 8;
+            return new java.awt.Color(Math.min(255, r), Math.min(255, g), Math.min(255, b));
+        }
+
+        private static boolean isSimilarColor(int rgb, int bgRgb, int tolerance) {
+            int r1 = (rgb >> 16) & 0xFF;
+            int g1 = (rgb >> 8) & 0xFF;
+            int b1 = rgb & 0xFF;
+            int r2 = (bgRgb >> 16) & 0xFF;
+            int g2 = (bgRgb >> 8) & 0xFF;
+            int b2 = bgRgb & 0xFF;
+            int dr = Math.abs(r1 - r2);
+            int dg = Math.abs(g1 - g2);
+            int db = Math.abs(b1 - b2);
+            return dr <= tolerance && dg <= tolerance && db <= tolerance;
         }
 
         public VehicleIcon(String type, int width, int height) {

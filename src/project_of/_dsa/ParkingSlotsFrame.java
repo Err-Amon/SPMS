@@ -188,7 +188,7 @@ public class ParkingSlotsFrame extends JFrame {
                 java.util.List<Vehicle> vehicles = DataStructureManager.slotManager.getAllVehiclesInSlot(slotNumber);
                 if (!vehicles.isEmpty()) {
                     Vehicle v = vehicles.get(0);
-                    slotBtn.setIcon(Theme.getVehicleIcon(v.getVehicleType(), 36, 36));
+                    slotBtn.setIcon(Theme.getVehicleIcon(v.getVehicleType(), 52, 52));
                     String tooltip = "Slot " + slotNumber + "\n" +
                             "Vehicle: " + v.getVehicleNo() + "\n" +
                             "Owner: " + v.getOwnerName() + "\n" +
