@@ -25,10 +25,8 @@ Java Swing + SQLite desktop app for managing vehicle parking with multiple built
 
 ## Getting Started
 
-```bash (compile and run)
-
-javac -cp "/home/owais-hashim/Desktop/project DSA/lib/*" -d /home/owais-hashim/Desktop/project\ DSA/out /home/owais-hashim/Desktop/project\ DSA/src/project_of/_dsa/*.java && cp /home/owais-hashim/Desktop/project\ DSA/src/project_of/_dsa/icons/*.png /home/owais-hashim/Desktop/project\ DSA/out/project_of/_dsa/icons/
-
+```bash
+javac -cp "lib/*" -d out src/project_of/_dsa/*.java
 java -cp "out:lib/*" project_of._dsa.Project_of_DSA
 ```
 
