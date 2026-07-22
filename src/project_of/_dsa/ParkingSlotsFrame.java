@@ -139,12 +139,18 @@ public class ParkingSlotsFrame extends JFrame {
         int occupied = DataStructureManager.slotManager.getOccupiedSlots();
         int available = total - occupied;
         double occupancy = DataStructureManager.slotManager.getOccupancyPercentage();
+        int bikeOccupied = DataStructureManager.slotManager.getOccupiedBikeSlots();
+        int generalOccupied = DataStructureManager.slotManager.getGeneralOccupiedSlots();
+        int vipOccupied = DataStructureManager.slotManager.getVipOccupiedSlots();
+        int emergencyOccupied = DataStructureManager.slotManager.getEmergencyOccupiedSlots();
 
         panel.add(createStatBadge("Total", String.valueOf(total)));
         panel.add(createStatBadge("Available", String.valueOf(available)));
         panel.add(createStatBadge("Occupied", String.valueOf(occupied)));
-        panel.add(createStatBadge("Reserved", "0"));
-        panel.add(createStatBadge("Occupancy", String.format("%.1f%%", occupancy)));
+        panel.add(createStatBadge("Bikes", bikeOccupied + "/" + DataStructureManager.slotManager.getBikeZoneEnd()));
+        panel.add(createStatBadge("General", generalOccupied + "/" + DataStructureManager.slotManager.getGeneralZoneSize()));
+        panel.add(createStatBadge("VIP", vipOccupied + "/" + DataStructureManager.slotManager.getVipZoneSize()));
+        panel.add(createStatBadge("Emergency", emergencyOccupied + "/" + DataStructureManager.slotManager.getEmergencyZoneSize()));
 
         return panel;
     }
@@ -168,7 +174,9 @@ public class ParkingSlotsFrame extends JFrame {
         int total = settings.getTotalCapacity();
         for (int i = 1; i <= total; i++) {
             final int slotNumber = i;
+            String slotPrefix = DataStructureManager.slotManager.getSlotPrefix(slotNumber);
             SlotButton slotBtn = new SlotButton(slotNumber);
+            slotBtn.setText(slotPrefix);
             slotBtn.setFont(new Font("Segoe UI", Font.BOLD, 15));
             slotBtn.setFocusPainted(false);
             slotBtn.setBorderPainted(false);
@@ -189,7 +197,7 @@ public class ParkingSlotsFrame extends JFrame {
                 if (!vehicles.isEmpty()) {
                     Vehicle v = vehicles.get(0);
                     slotBtn.setIcon(Theme.getVehicleIcon(v.getVehicleType(), 52, 52));
-                    String tooltip = "Slot " + slotNumber + "\n" +
+                    String tooltip = "Slot: " + DataStructureManager.slotManager.getSlotDisplayLabel(slotNumber) + "\n" +
                             "Vehicle: " + v.getVehicleNo() + "\n" +
                             "Owner: " + v.getOwnerName() + "\n" +
                             "Type: " + v.getVehicleType() + "\n" +

@@ -200,7 +200,8 @@ public class VehicleExitFrame extends JFrame {
         txtOwner.setText(vehicle.getOwnerName());
         txtVehicleType.setText(vehicle.getVehicleType());
         txtPriority.setText(vehicle.getPriority());
-        txtSlot.setText(String.valueOf(vehicle.getSlotNumber()));
+        String slotDisplay = DataStructureManager.slotManager.getSlotDisplayLabel(vehicle.getSlotNumber());
+        txtSlot.setText(slotDisplay);
         txtEntryTime.setText(vehicle.getEntryTime().toString());
         refreshFeePreview();
     }
@@ -225,11 +226,12 @@ public class VehicleExitFrame extends JFrame {
         LocalDateTime now = LocalDateTime.now();
         long minutes = Duration.between(vehicle.getEntryTime(), now).toMinutes();
         double fee = ParkingFeeManager.calculateFeePreview(vehicle, settings);
+        String slotDisplay = DataStructureManager.slotManager.getSlotDisplayLabel(vehicle.getSlotNumber());
         receiptArea.setText(
                 "=== PARKING RECEIPT PREVIEW ===\n" +
                         "Vehicle:   " + vehicle.getVehicleNo() + "\n" +
                         "Owner:     " + vehicle.getOwnerName() + "\n" +
-                        "Slot:      " + vehicle.getSlotNumber() + "\n" +
+                        "Slot:      " + slotDisplay + "\n" +
                         "Entry:     " + vehicle.getEntryTime() + "\n" +
                         "Exit:      " + now + "\n" +
                         "Duration:  " + ParkingFeeManager.formatDuration(minutes) + "\n" +
@@ -266,7 +268,8 @@ public class VehicleExitFrame extends JFrame {
 
             JOptionPane.showMessageDialog(this,
                     "Vehicle Exit Successful!\n\nParking Fee: PKR " + String.format("%.2f", fee) +
-                            "\nDuration: " + ParkingFeeManager.formatDuration(ParkingFeeManager.calculateDurationMinutes(vehicle)),
+                            "\nDuration: " + ParkingFeeManager.formatDuration(ParkingFeeManager.calculateDurationMinutes(vehicle)) +
+                            "\nSlot: " + DataStructureManager.slotManager.getSlotDisplayLabel(vehicle.getSlotNumber()),
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );

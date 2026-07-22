@@ -250,9 +250,30 @@ public class VehicleEntryFrame extends JFrame {
             }
         }
 
+        String zone = DataStructureManager.slotManager.getZoneForSlot(chosenSlot);
+        if (!isVehicleAllowedInZone(vehicleType, priority, zone)) {
+            JOptionPane.showMessageDialog(this,
+                    "Zone Mismatch! " + vehicleType + " / " + priority + " is not allowed in " + zone + " zone.",
+                    "Allocation Error", JOptionPane.ERROR_MESSAGE);
+            DataStructureManager.slotManager.releaseSlot(chosenSlot);
+            return;
+        }
+
         vehicle.setSlotNumber(chosenSlot);
 
+        String slotPrefix = DataStructureManager.slotManager.getSlotPrefix(chosenSlot);
+        txtSlot.setText(slotPrefix);
+
         DataStructureManager.parkingQueue.Addvehicle(vehicle);
+        DataStructureManager.vehicleStack.push(vehicle);
+        DataStructureManager.linkedList.addVehicleSilent(vehicle);
+        DataStructureManager.doublyLinkedList.addVehicle(vehicle);
+        DataStructureManager.hashTable.insertVehicle(vehicle);
+        DataStructureManager.avlTree.insert(vehicle);
+        DataStructureManager.minHeap.insert(vehicle);
+        DataStructureManager.trie.insert(vehicle.getVehicleNo());
+        DataStructureManager.dynamicArray.add(vehicle);
+        DataStructureManager.circularQueue.enqueue(vehicle);
         DataStructureManager.vehicleStack.push(vehicle);
         DataStructureManager.linkedList.addVehicleSilent(vehicle);
         DataStructureManager.doublyLinkedList.addVehicle(vehicle);
@@ -282,5 +303,27 @@ public class VehicleEntryFrame extends JFrame {
             DataStructureManager.slotManager.releaseSlot(chosenSlot);
             JOptionPane.showMessageDialog(this, "Database Error! Slot released.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private boolean isVehicleAllowedInZone(String vehicleType, String priority, String zone) {
+        if ("BIKE".equalsIgnoreCase(zone)) {
+            return "Bike".equalsIgnoreCase(vehicleType);
+        }
+        if ("VIP".equalsIgnoreCase(zone)) {
+            return "VIP".equalsIgnoreCase(priority);
+        }
+        if ("EMERGENCY".equalsIgnoreCase(zone)) {
+            return "Ambulance".equalsIgnoreCase(priority)
+                    || "Fire Brigade".equalsIgnoreCase(priority)
+                    || "Police".equalsIgnoreCase(priority);
+        }
+        if ("GENERAL".equalsIgnoreCase(zone)) {
+            return !"Bike".equalsIgnoreCase(vehicleType)
+                    && !"VIP".equalsIgnoreCase(priority)
+                    && !"Ambulance".equalsIgnoreCase(priority)
+                    && !"Fire Brigade".equalsIgnoreCase(priority)
+                    && !"Police".equalsIgnoreCase(priority);
+        }
+        return true;
     }
 }

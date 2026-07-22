@@ -110,7 +110,7 @@ public class SearchVehicleFrame extends JFrame {
         JLabel resultsTitle = Theme.createSectionTitle("Search Results");
         resultsCard.add(resultsTitle, BorderLayout.NORTH);
 
-        String[] columns = {"Vehicle No", "Owner", "Type", "Slot", "Entry Time", "Status", "Fee"};
+        String[] columns = {"Vehicle No", "Owner", "Type", "Priority", "Slot", "Zone", "Entry Time", "Status", "Fee"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -154,11 +154,19 @@ public class SearchVehicleFrame extends JFrame {
         }
 
         for (Vehicle v : results) {
+            String slotLabel = v.getSlotNumber() > 0
+                    ? DataStructureManager.slotManager.getSlotDisplayLabel(v.getSlotNumber())
+                    : "N/A";
+            String zone = v.getSlotNumber() > 0
+                    ? DataStructureManager.slotManager.getZoneForSlot(v.getSlotNumber())
+                    : "N/A";
             tableModel.addRow(new Object[]{
                     v.getVehicleNo(),
                     v.getOwnerName(),
                     v.getVehicleType(),
-                    v.getSlotNumber() != -1 ? v.getSlotNumber() : "N/A",
+                    v.getPriority(),
+                    v.getSlotNumber() != -1 ? DataStructureManager.slotManager.getSlotPrefix(v.getSlotNumber()) : "N/A",
+                    zone,
                     v.getEntryTime() != null ? v.getEntryTime().toString().substring(0, 16) : "N/A",
                     v.isParked() ? "Parked" : "Exited",
                     String.format("%.2f PKR", v.getParkingFee())

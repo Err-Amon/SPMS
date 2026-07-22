@@ -10,6 +10,13 @@ public class ParkingSlotManager {
     private boolean allowBikeInCarSlots;
     private Map<Integer, String> reservedFor;
 
+    private int generalZoneSize;
+    private int vipZoneSize;
+    private int emergencyZoneSize;
+    private int generalZoneStart;
+    private int vipZoneStart;
+    private int emergencyZoneStart;
+
     @SuppressWarnings("unchecked")
     public ParkingSlotManager(int totalSlots) {
         this(totalSlots, 2, false);
@@ -26,6 +33,30 @@ public class ParkingSlotManager {
         this.bikesPerSlot = Math.max(1, bikesPerSlot);
         this.allowBikeInCarSlots = allowBikeInCarSlots;
         this.bikeZoneEnd = Math.max(1, (int) Math.ceil(this.totalSlots * 0.2));
+        initializeZones();
+    }
+
+    private void initializeZones() {
+        int remaining = totalSlots - bikeZoneEnd;
+        if (remaining <= 0) {
+            generalZoneSize = 0;
+            vipZoneSize = 0;
+            emergencyZoneSize = 0;
+            generalZoneStart = bikeZoneEnd;
+            vipZoneStart = totalSlots;
+            emergencyZoneStart = totalSlots;
+            return;
+        }
+        generalZoneSize = (int) Math.floor(remaining * 0.50);
+        vipZoneSize = Math.max(1, (int) Math.floor(remaining * 0.15));
+        emergencyZoneSize = remaining - generalZoneSize - vipZoneSize;
+        if (emergencyZoneSize < 1) {
+            emergencyZoneSize = 1;
+            generalZoneSize = remaining - vipZoneSize - emergencyZoneSize;
+        }
+        generalZoneStart = bikeZoneEnd;
+        vipZoneStart = generalZoneStart + generalZoneSize;
+        emergencyZoneStart = vipZoneStart + vipZoneSize;
     }
 
     public boolean isBikeSlot(int slotNumber) {
@@ -94,6 +125,105 @@ public class ParkingSlotManager {
         this.bikesPerSlot = Math.max(1, count);
     }
 
+    public boolean isGeneralSlot(int slotNumber) {
+        int index = slotNumber - 1;
+        return index >= generalZoneStart && index < generalZoneStart + generalZoneSize;
+    }
+
+    public boolean isVipSlot(int slotNumber) {
+        int index = slotNumber - 1;
+        return index >= vipZoneStart && index < vipZoneStart + vipZoneSize;
+    }
+
+    public boolean isEmergencySlot(int slotNumber) {
+        int index = slotNumber - 1;
+        return index >= emergencyZoneStart && index < emergencyZoneStart + emergencyZoneSize;
+    }
+
+    public String getZoneForSlot(int slotNumber) {
+        int index = slotNumber - 1;
+        if (index >= 0 && index < bikeZoneEnd) return "BIKE";
+        if (index >= generalZoneStart && index < generalZoneStart + generalZoneSize) return "GENERAL";
+        if (index >= vipZoneStart && index < vipZoneStart + vipZoneSize) return "VIP";
+        if (index >= emergencyZoneStart && index < emergencyZoneStart + emergencyZoneSize) return "EMERGENCY";
+        return "UNKNOWN";
+    }
+
+    public String getSlotPrefix(int slotNumber) {
+        int index = slotNumber - 1;
+        if (index >= 0 && index < bikeZoneEnd) {
+            return "B" + slotNumber;
+        }
+        if (index >= generalZoneStart && index < generalZoneStart + generalZoneSize) {
+            return "G" + (index - generalZoneStart + 1);
+        }
+        if (index >= vipZoneStart && index < vipZoneStart + vipZoneSize) {
+            return "V" + (index - vipZoneStart + 1);
+        }
+        if (index >= emergencyZoneStart && index < emergencyZoneStart + emergencyZoneSize) {
+            return "E" + (index - emergencyZoneStart + 1);
+        }
+        return String.valueOf(slotNumber);
+    }
+
+    public String getSlotDisplayLabel(int slotNumber) {
+        return getSlotPrefix(slotNumber) + " (" + getZoneForSlot(slotNumber) + ")";
+    }
+
+    public int getGeneralZoneSize() { return generalZoneSize; }
+    public int getVipZoneSize() { return vipZoneSize; }
+    public int getEmergencyZoneSize() { return emergencyZoneSize; }
+
+    public int getGeneralZoneStart() { return generalZoneStart; }
+    public int getGeneralZoneEnd() { return generalZoneStart + generalZoneSize - 1; }
+    public int getVipZoneStart() { return vipZoneStart; }
+    public int getVipZoneEnd() { return vipZoneStart + vipZoneSize - 1; }
+    public int getEmergencyZoneStart() { return emergencyZoneStart; }
+    public int getEmergencyZoneEnd() { return emergencyZoneStart + emergencyZoneSize - 1; }
+
+    public int getGeneralOccupiedSlots() {
+        int count = 0;
+        for (int i = generalZoneStart; i < generalZoneStart + generalZoneSize; i++) {
+            if (!slotVehicles[i].isEmpty()) count++;
+        }
+        return count;
+    }
+
+    public int getVipOccupiedSlots() {
+        int count = 0;
+        for (int i = vipZoneStart; i < vipZoneStart + vipZoneSize; i++) {
+            if (!slotVehicles[i].isEmpty()) count++;
+        }
+        return count;
+    }
+
+    public int getEmergencyOccupiedSlots() {
+        int count = 0;
+        for (int i = emergencyZoneStart; i < emergencyZoneStart + emergencyZoneSize; i++) {
+            if (!slotVehicles[i].isEmpty()) count++;
+        }
+        return count;
+    }
+
+    public int getGeneralAvailableSlots() { return generalZoneSize - getGeneralOccupiedSlots(); }
+    public int getVipAvailableSlots() { return vipZoneSize - getVipOccupiedSlots(); }
+    public int getEmergencyAvailableSlots() { return emergencyZoneSize - getEmergencyOccupiedSlots(); }
+
+    public double getGeneralOccupancyPercentage() {
+        if (generalZoneSize == 0) return 0.0;
+        return ((double) getGeneralOccupiedSlots() / generalZoneSize) * 100.0;
+    }
+
+    public double getVipOccupancyPercentage() {
+        if (vipZoneSize == 0) return 0.0;
+        return ((double) getVipOccupiedSlots() / vipZoneSize) * 100.0;
+    }
+
+    public double getEmergencyOccupancyPercentage() {
+        if (emergencyZoneSize == 0) return 0.0;
+        return ((double) getEmergencyOccupiedSlots() / emergencyZoneSize) * 100.0;
+    }
+
     public int getTotalSlots() {
         return totalSlots;
     }
@@ -158,6 +288,9 @@ public class ParkingSlotManager {
     public boolean addVehicleToSlot(int slotNumber, Vehicle vehicle) {
         int index = slotNumber - 1;
         if (index < 0 || index >= totalSlots) return false;
+        if (!canVehicleUseSlot(vehicle, slotNumber)) {
+            return false;
+        }
         if (vehicle != null && !slotVehicles[index].contains(vehicle)) {
             slotVehicles[index].add(vehicle);
         }
@@ -165,13 +298,45 @@ public class ParkingSlotManager {
         return true;
     }
 
+    public boolean canVehicleUseSlot(Vehicle vehicle, int slotNumber) {
+        if (vehicle == null) return false;
+        String type = vehicle.getVehicleType();
+        String priority = vehicle.getPriority() != null ? vehicle.getPriority() : "NORMAL";
+        String zone = getZoneForSlot(slotNumber);
+        if ("BIKE".equalsIgnoreCase(zone)) {
+            return "Bike".equalsIgnoreCase(type);
+        }
+        if ("VIP".equalsIgnoreCase(zone)) {
+            return "VIP".equalsIgnoreCase(priority);
+        }
+        if ("EMERGENCY".equalsIgnoreCase(zone)) {
+            return "Ambulance".equalsIgnoreCase(priority)
+                    || "Fire Brigade".equalsIgnoreCase(priority)
+                    || "Police".equalsIgnoreCase(priority);
+        }
+        if ("GENERAL".equalsIgnoreCase(zone)) {
+            return !"Bike".equalsIgnoreCase(type)
+                    && !"VIP".equalsIgnoreCase(priority)
+                    && !"Ambulance".equalsIgnoreCase(priority)
+                    && !"Fire Brigade".equalsIgnoreCase(priority)
+                    && !"Police".equalsIgnoreCase(priority);
+        }
+        return false;
+    }
+
     public int allocateSlot(String priority, String vehicleType) {
         if (vehicleType == null) vehicleType = "Car";
 
         if ("Bike".equalsIgnoreCase(vehicleType)) {
             return allocateBikeSlot(priority);
+        } else if ("VIP".equalsIgnoreCase(priority)) {
+            return allocateVipSlot();
+        } else if ("Ambulance".equalsIgnoreCase(priority)
+                || "Fire Brigade".equalsIgnoreCase(priority)
+                || "Police".equalsIgnoreCase(priority)) {
+            return allocateEmergencySlot();
         } else {
-            return allocateCarSlot(priority);
+            return allocateGeneralSlot();
         }
     }
 
@@ -191,8 +356,26 @@ public class ParkingSlotManager {
         return -1;
     }
 
-    private int allocateCarSlot(String priority) {
-        for (int i = bikeZoneEnd; i < totalSlots; i++) {
+    private int allocateGeneralSlot() {
+        for (int i = generalZoneStart; i < generalZoneStart + generalZoneSize; i++) {
+            if (slotVehicles[i].isEmpty()) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    private int allocateVipSlot() {
+        for (int i = vipZoneStart; i < vipZoneStart + vipZoneSize; i++) {
+            if (slotVehicles[i].isEmpty()) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    private int allocateEmergencySlot() {
+        for (int i = emergencyZoneStart; i < emergencyZoneStart + emergencyZoneSize; i++) {
             if (slotVehicles[i].isEmpty()) {
                 return i + 1;
             }
@@ -206,14 +389,9 @@ public class ParkingSlotManager {
             return AllocationResult.invalid("Invalid slot number.");
         }
 
-        String incomingType = incoming.getVehicleType() != null ? incoming.getVehicleType() : "Car";
-        boolean incomingIsBike = "Bike".equalsIgnoreCase(incomingType);
-
-        if (incomingIsBike && !canParkBikeInSlot(requestedSlot)) {
-            return AllocationResult.invalid("Bikes are not allowed in this zone.");
-        }
-        if (!incomingIsBike && !canParkCarInSlot(requestedSlot)) {
-            return AllocationResult.invalid("Cars are not allowed in bike-only slots.");
+        if (!canVehicleUseSlot(incoming, requestedSlot)) {
+            String zone = getZoneForSlot(requestedSlot);
+            return AllocationResult.invalid("Vehicle type/priority is not allowed in " + zone + " zone (slot " + requestedSlot + ").");
         }
 
         List<Vehicle> existingVehicles = slotVehicles[index];
@@ -240,26 +418,17 @@ public class ParkingSlotManager {
         if (vehicle == null) return -1;
         String type = vehicle.getVehicleType() != null ? vehicle.getVehicleType() : "Car";
         if ("Bike".equalsIgnoreCase(type)) {
-            for (int i = 0; i < totalSlots; i++) {
+            for (int i = 0; i < bikeZoneEnd; i++) {
                 if (getBikeCount(i + 1) < bikesPerSlot) {
                     return i + 1;
                 }
             }
             if (allowBikeInCarSlots) {
-                for (int i = bikeZoneEnd; i < totalSlots; i++) {
-                    if (slotVehicles[i].isEmpty()) {
-                        return i + 1;
-                    }
-                }
+                return allocateGeneralSlot();
             }
-        } else {
-            for (int i = bikeZoneEnd; i < totalSlots; i++) {
-                if (slotVehicles[i].isEmpty()) {
-                    return i + 1;
-                }
-            }
+            return -1;
         }
-        return -1;
+        return allocateSlot(vehicle.getPriority(), vehicle.getVehicleType());
     }
 
     public void relocateVehicle(Vehicle vehicle, int newSlot) {
@@ -267,9 +436,19 @@ public class ParkingSlotManager {
         if (oldSlot > 0) {
             releaseSlot(oldSlot);
         }
-        int index = newSlot - 1;
-        slotVehicles[index].add(vehicle);
-        vehicle.setSlotNumber(newSlot);
+        if (!canVehicleUseSlot(vehicle, newSlot)) {
+            int correctSlot = allocateSlot(vehicle.getPriority(), vehicle.getVehicleType());
+            if (correctSlot != -1) {
+                newSlot = correctSlot;
+            } else {
+                newSlot = -1;
+            }
+        }
+        if (newSlot != -1) {
+            int index = newSlot - 1;
+            slotVehicles[index].add(vehicle);
+            vehicle.setSlotNumber(newSlot);
+        }
     }
 
     public boolean removeVehicleFromSlot(int slotNumber, Vehicle vehicle) {

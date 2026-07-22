@@ -330,28 +330,34 @@ public class EnhancedDashboard extends JFrame {
         int occupied     = DataStructureManager.slotManager.getOccupiedSlots();
         int available    = total - occupied;
         int bikes        = DataStructureManager.slotManager.getTotalBikeCount();
-        int carOccupied  = DataStructureManager.slotManager.getOccupiedCarSlots();
+        int generalOccupied  = DataStructureManager.slotManager.getGeneralOccupiedSlots();
+        int vipOccupied      = DataStructureManager.slotManager.getVipOccupiedSlots();
+        int emergencyOccupied = DataStructureManager.slotManager.getEmergencyOccupiedSlots();
         int vehicles     = VehicleDAO.getTotalVehiclesCount();
         double revenue   = VehicleDAO.getTodayRevenue();
 
-        String[] labels = {"Total Slots", "Available", "Occupied", "Bikes", "Car Zone", "Vehicles", "Revenue"};
+        String[] labels = {"Total Slots", "Available", "Occupied", "Bikes", "General Zone", "VIP Zone", "Emergency Zone", "Vehicles", "Revenue"};
         String[] values = {
             String.valueOf(total),
             String.valueOf(available),
             String.valueOf(occupied),
             String.valueOf(bikes),
-            String.valueOf(carOccupied),
+            generalOccupied + "/" + DataStructureManager.slotManager.getGeneralZoneSize(),
+            vipOccupied + "/" + DataStructureManager.slotManager.getVipZoneSize(),
+            emergencyOccupied + "/" + DataStructureManager.slotManager.getEmergencyZoneSize(),
             String.valueOf(vehicles),
             String.format("PKR %.0f", revenue)
         };
         Color[] accents = {
-            new Color(200, 215, 255),   // Total — soft white-blue
-            new Color(52, 211, 153),    // Available — emerald
-            new Color(248, 113, 113),   // Occupied — red
-            new Color(96, 165, 250),    // Bikes — blue
-            new Color(167, 139, 250),   // Car Zone — violet
-            new Color(200, 215, 255),   // Vehicles — soft white-blue
-            new Color(52, 211, 153),    // Revenue — emerald
+            new Color(200, 215, 255),
+            new Color(52, 211, 153),
+            new Color(248, 113, 113),
+            new Color(96, 165, 250),
+            new Color(52, 211, 153),
+            new Color(251, 191, 36),
+            new Color(248, 113, 113),
+            new Color(167, 139, 250),
+            new Color(52, 211, 153),
         };
 
         JPanel statsRow = new JPanel(new GridLayout(1, labels.length, 16, 0));

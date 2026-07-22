@@ -50,7 +50,15 @@ public class DataStructureManager {
             minHeap.insert(v);
             trie.insert(v.getVehicleNo());
             if (v.isParked() && v.getSlotNumber() > 0) {
-                slotManager.addVehicleToSlot(v.getSlotNumber(), v);
+                boolean added = slotManager.addVehicleToSlot(v.getSlotNumber(), v);
+                if (!added) {
+                    int newSlot = slotManager.allocateSlot(v.getPriority(), v.getVehicleType());
+                    if (newSlot != -1) {
+                        v.setSlotNumber(newSlot);
+                        slotManager.addVehicleToSlot(newSlot, v);
+                        VehicleDAO.updateVehicleSlot(v.getVehicleNo(), newSlot);
+                    }
+                }
             }
         }
     }
